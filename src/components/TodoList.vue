@@ -4,13 +4,12 @@
     <span class="navbar w-100">Todo List</span>
 
     <b-row id="todolist" class="w-100">
-      <b-alert
-              variant="danger"
-              dismissible
-              fade
-              :show="alertDate.length > 0 && showDismissibleAlert"
-              @dismissed="showDismissibleAlert = false"
-      >
+       <b-alert variant="warning"
+                dismissible
+                fade
+                :show="alertDate.length > 0 && showDismissibleAlert && todoList.length > 0"
+                @dismissed="showDismissibleAlert = false"
+       >
         마감기간이 지난 일정이 존재합니다.
       </b-alert>
       <b-row class="w-100">
@@ -121,7 +120,7 @@
         selectedTodo : {title:'', content: '' , date:''},
         alertDate : false,
         showDismissibleAlert : true,
-        modalMode: null
+        modalMode: null,
       }
     },
     watch: {
@@ -200,7 +199,7 @@
       },
       removeCompleted: function () {
         this.todoList = _.filter(this.todoList, ['completed', false]);
-      }
+      },
     },
 
     mounted: function() {
@@ -309,15 +308,9 @@
     height: 600px;
   }
 
-
   .todo-list li {
     position: relative;
     font-size: 24px;
-    border-bottom: 1px solid #ededed;
-  }
-
-  .todo-list li:last-child {
-    border-bottom: none;
   }
 
   .todo-list li label {

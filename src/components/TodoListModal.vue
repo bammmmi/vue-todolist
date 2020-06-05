@@ -2,7 +2,7 @@
   <b-modal :ref="popupRef" hide-footer>
     <form ref="form" >
       <b-form-group>
-        <b-form-input v-model="title" placeholder="제목 입력" required :state="title.length == 0"></b-form-input>
+        <b-form-input v-model="title" placeholder="제목 입력"></b-form-input>
         <b-form-textarea
                 v-model="content"
                 placeholder="내용 입력"
@@ -13,7 +13,6 @@
         <b-form-datepicker placeholder="" local="ko"  v-model="date" :aria-disabled="!dateYn"></b-form-datepicker>
       </b-form-group>
     </form>
-    {{todo.title}}
     <b-button class="mt-2" variant="outline-danger" @click="cancel">취소</b-button>
     <b-button class="mt-2" variant="outline-warning" @click="addTodo" v-if="mode=='add'">추가</b-button>
     <b-button class="mt-2" variant="outline-warning" @click="modifyTodo" v-else>수정</b-button>
@@ -63,14 +62,14 @@
       },
       addTodo() {
         this.$emit('add',{title : this.title , content : this.content, date : this.date});
-        this.$refs[this.popupRef].onCancel();
+        this.cancel();
       },
       modifyTodo(){
         this.todo.title = this.title;
         this.todo.content = this.content;
         this.todo.date = this.date;
         this.$emit('done', this.todo);
-        this.$refs[this.popupRef].onCancel();
+        this.cancel();
       }
     },
   }
