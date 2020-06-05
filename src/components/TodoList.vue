@@ -8,7 +8,7 @@
               variant="danger"
               dismissible
               fade
-              :show="datetoto.length > 0 && showDismissibleAlert"
+              :show="alertDate.length > 0 && showDismissibleAlert"
               @dismissed="showDismissibleAlert = false"
       >
         마감기간이 지난 일정이 존재합니다.
@@ -16,7 +16,7 @@
       <b-row class="w-100">
         <b-row no-gutters align-h="between" align-v="center" class="pl-4 pr-3">
           <b-row no-gutters>
-            <span class="badge">전체 : {{todos.length}}</span>
+            <span class="badge">전체 : {{todoList.length}}</span>
             <span class="badge">완료 : {{completed || 0}}</span>
             <span class="badge">미완료 : {{pending || 0}}</span>
           </b-row>
@@ -28,49 +28,49 @@
         </b-row>
       </b-row>
 
-      <b-row class="main w-100" v-show="todos.length" v-cloak>
-        <draggable v-model="todos" group="info" @start="drag=true" @end="drag=false" class="w-100">
-          <li v-for="todo in todos"
-              class="todo-item"
-              :key="todo.id"
-              :class="{ done: todo.completed, undone: !todo.completed }">
+      <b-row class="main w-100" v-show="todoList.length" v-cloak>
+        <draggable v-model="todoList" group="info" @start="drag=true" @end="drag=false" class="w-100">
+          <li v-for="todo in todoList"
+                   class="todo-item"
+                   :key="todo.id"
+                   :class="{ done: todo.completed, undone: !todo.completed }">
             <div class="todo-info">
-              <input class="toggle" type="checkbox" v-model="todo.completed">
-              <span class="label todo-title">{{ todo.title }}</span>
+                <input class="toggle" type="checkbox" v-model="todo.completed">
+                <span class="label todo-title">{{ todo.title }}</span>
             </div>
             <span class="todo-date">{{todo.date | dateFormat}}</span>
 
             <b-row class="actions">
-              <b-button
-                      @click="viewTodo(todo)"
-                      aria-label="Detail"
-                      title="Detail"
-                      class="btn-picto"
-              >
-                <span class="font-12">상세</span>
-              </b-button>
-              <b-button
-                      @click="editTodo(todo)"
-                      aria-label="Edit"
-                      title="Edit"
-                      class="btn-picto"
-              >
-                <span class="font-12">수정</span>
-              </b-button>
+                <b-button
+                        @click="viewTodo(todo)"
+                        aria-label="Detail"
+                        title="Detail"
+                        class="btn-picto"
+                >
+                    <span class="font-12">상세</span>
+                </b-button>
+                <b-button
+                        @click="editTodo(todo)"
+                        aria-label="Edit"
+                        title="Edit"
+                        class="btn-picto"
+                >
+                    <span class="font-12">수정</span>
+                </b-button>
 
-              <b-button
-                      @click="removeTodo(todo)"
-                      aria-label="Delete"
-                      title="Delete"
-                      class="btn-picto"
-              >
-                <span class="font-12">삭제</span>
-              </b-button>
+                <b-button
+                        @click="removeTodo(todo)"
+                        aria-label="Delete"
+                        title="Delete"
+                        class="btn-picto"
+                >
+                    <span class="font-12">삭제</span>
+                </b-button>
             </b-row>
-          </li>
+        </li>
         </draggable>
 
-        <b-row class="footer" v-show="todos.length > pending" v-cloak>
+        <b-row class="footer" v-show="todoList.length > pending" v-cloak>
           <b-button class="btn-picto" title="CompletedDelete" @click="removeCompleted" >
             완료 된 일정 삭제
           </b-button>
@@ -79,12 +79,19 @@
 
       <todo-list-modal
               ref="todoPopup"
-              :todo="todo"
+              :todo="selectedTodo"
               popup-ref="openTodoPopup"
+              :mode="modalMode"
               @add="addTodo"
               @done="doneEdit"
               @onConfirmAction="addTodo"
       />
+
+       <todo-list-view-modal
+              ref="todoViewPopup"
+              :todo="selectedTodo"
+              popup-ref="openTodoViewPopup"
+       />
 
     </b-row>
 
@@ -95,6 +102,7 @@
 <script>
   import draggable from "vuedraggable";
   import TodoListModal from "./TodoListModal"
+  import TodoListViewModal from "./TodoListViewModal"
   import moment from "moment";
   import { uuid } from 'vue-uuid'
 
@@ -102,23 +110,22 @@
     name: 'TodoList',
     components: {
       draggable,
-      TodoListModal
+      TodoListModal,
+      TodoListViewModal
     },
     data () {
       return {
-        todos: [],
-        newTodo: null,
-        content : null,
+        todoList: [],
         editedTodo: null,
-        visibility: 'all',
         drag : true,
-        todo : null,
-        datetoto : false,
-        showDismissibleAlert : true
+        selectedTodo : {title:'', content: '' , date:''},
+        alertDate : false,
+        showDismissibleAlert : true,
+        modalMode: null
       }
     },
     watch: {
-      todos: {
+      todoList: {
         handler: function(updatedList) {
           localStorage.setItem('todoList', JSON.stringify(updatedList));
         },
@@ -127,10 +134,10 @@
     },
     computed: {
       completed: function () {
-        return _.filter(this.todos, 'completed').length;
+        return _.filter(this.todoList, 'completed').length;
       },
       pending: function () {
-        return _.filter(this.todos, ['completed', false]).length;
+        return _.filter(this.todoList, ['completed', false]).length;
       },
     },
     filters: {
@@ -142,30 +149,37 @@
     methods: {
       getTodos() {
         if (localStorage.getItem('todoList')) {
-          this.todos = JSON.parse(localStorage.getItem('todoList'));
+          this.todoList = JSON.parse(localStorage.getItem('todoList'));
+          this.alertDate  = _.filter(this.todoList, function(t) {
+            if (t.date != '') {
+              if (moment(t.date).format('YYYY-MM-DD') < moment().format('YYYY-MM-DD') && !t.completed) {
+                return t.date;
+              }
+            }
+          });
         }
       },
       addTodo(param) {
-        this.todos.unshift({
+        this.todoList.unshift({
           id: uuid.v1(),
-          title: param.newTodo,
+          title: param.title,
           content: param.content,
           date: param.date,
           completed: false
         });
       },
       removeTodo: function (todo) {
-        this.todos.splice(this.todos.indexOf(todo), 1)
+        this.todoList.splice(this.todoList.indexOf(todo), 1)
       },
       editTodo: function (todo) {
-        this.todo = todo;
+        this.modalMode = 'edit';
+        this.selectedTodo = todo;
         this.editedTodo = todo;
         this.$refs.todoPopup.show();
-
       },
       viewTodo: function(todo){
-        this.todo = todo;
-        this.$refs.todoPopup.show();
+        this.selectedTodo = todo;
+        this.$refs.todoViewPopup.show();
       },
       doneEdit: function (param) {
         if (!this.editedTodo) {
@@ -180,23 +194,17 @@
         }
       },
       openTodoPopup () {
+        this.modalMode = 'add';
+        this.selectedTodo = {};
         this.$refs.todoPopup.show();
       },
       removeCompleted: function () {
-        this.todos = _.filter(this.todos, ['completed', false]);
+        this.todoList = _.filter(this.todoList, ['completed', false]);
       }
     },
 
     mounted: function() {
       this.getTodos();
-
-      this.datetoto  = _.filter(this.todos, function(t){
-        if(t.date != ''){
-          if(moment(t.date).format('YYYY-MM-DD') < moment().format('YYYY-MM-DD') && !t.completed){
-            return t.date;
-          }
-        }
-      });
     },
   }
 
@@ -277,16 +285,6 @@
     color: #11cdef;
   }
 
-  .togglebutton-wrapper label {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-  }
-  .togglebutton-wrapper input {
-    position: absolute;
-    left: -9999px;
-  }
-
   .todo-info {
     flex: 1 70%;
   }
@@ -300,17 +298,7 @@
     background-color: #f4f5f7;
     cursor: pointer;
   }
-  .todo-item .handle-wrapper {
-    width: 20px;
-    color: #b5b5b5;
-    opacity: 0;
-  }
-  #todolist li.todo-item:hover .handle-wrapper {
-    opacity: 1;
-  }
-  .handle-wrapper:hover {
-    cursor: move;
-  }
+
 
   .todoapp {
     background: #fff;
@@ -321,13 +309,6 @@
     height: 600px;
   }
 
-
-
-  .main {
-    position: relative;
-    z-index: 2;
-    border-top: 1px solid #e6e6e6;
-  }
 
   .todo-list li {
     position: relative;
@@ -368,60 +349,5 @@
     overflow: hidden;
   }
 
-  .filters {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    position: absolute;
-    right: 0;
-    left: 0;
-  }
-
-  .filters li {
-    display: inline;
-  }
-
-  .filters li a {
-    color: inherit;
-    margin: 3px;
-    padding: 3px 7px;
-    text-decoration: none;
-    border: 1px solid transparent;
-    border-radius: 3px;
-  }
-
-  .filters li a:hover {
-    border-color: rgba(175, 47, 47, 0.1);
-  }
-
-  .filters li a.selected {
-    border-color: rgba(175, 47, 47, 0.2);
-  }
-
-  .clear-completed,
-  html .clear-completed:active {
-    float: right;
-    position: relative;
-    line-height: 20px;
-    text-decoration: none;
-    cursor: pointer;
-  }
-
-
-  #todolist .done .label{
-    opacity: 0.6;
-  }
-  #todolist .done .label:before {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: -0.5rem;
-    display: block;
-    width: 0%;
-    height: 1px;
-    background: #fff;
-    animation: strikeitem 0.3s ease-out 0s forwards;
-
-  }
 
 </style>

@@ -2,19 +2,21 @@
   <b-modal :ref="popupRef" hide-footer>
     <form ref="form" >
       <b-form-group>
-        <b-form-input v-model="newTodo" placeholder="제목 입력" required :state="newTodo.length == 0"></b-form-input>
+        <b-form-input v-model="title" placeholder="제목 입력" required :state="title.length == 0"></b-form-input>
         <b-form-textarea
                 v-model="content"
                 placeholder="내용 입력"
                 rows="3"
                 max-rows="6"
         ></b-form-textarea>
-        <b-form-datepicker id="datepicker-placeholder" placeholder="Choose a date" local="ko"  v-model="datepicker1"></b-form-datepicker>
+        <b-form-checkbox v-model="dateYn">마감일 추가하기</b-form-checkbox>
+        <b-form-datepicker placeholder="" local="ko"  v-model="date" :aria-disabled="!dateYn"></b-form-datepicker>
       </b-form-group>
     </form>
-    <b-button class="mt-3" variant="outline-danger"  @click="cancel">취소</b-button>
-    <b-button class="mt-2" variant="outline-warning"  @click="addTodo">추가</b-button>
-    <b-button class="mt-2" variant="outline-warning"  @click="modifyTodo">수정</b-button>
+    {{todo.title}}
+    <b-button class="mt-2" variant="outline-danger" @click="cancel">취소</b-button>
+    <b-button class="mt-2" variant="outline-warning" @click="addTodo" v-if="mode=='add'">추가</b-button>
+    <b-button class="mt-2" variant="outline-warning" @click="modifyTodo" v-else>수정</b-button>
   </b-modal>
 </template>
 
@@ -28,27 +30,29 @@
         type: String,
         required: true,
       },
-
       todo:{
         type: Object
+      },
+      mode:{
+        type: String
       }
     },
     data() {
       return {
-        newTodo : "",
-        content : "",
-        datepicker1: '',
-        dated : false,
+        title : '',
+        content : '',
+        date: '',
+        dateYn : false,
       }
     },
     mounted(){
-
-    },
-    computed: {
-
     },
     watch:{
-
+      todo: function() {
+        this.title = this.todo.title;
+        this.content = this.todo.content;
+        this.date = this.todo.date;
+      }
     },
     methods: {
       show() {
@@ -58,13 +62,13 @@
         this.$refs[this.popupRef].onCancel();
       },
       addTodo() {
-        this.$emit('add',{newTodo : this.newTodo , content : this.content, date : this.datepicker1});
+        this.$emit('add',{title : this.title , content : this.content, date : this.date});
         this.$refs[this.popupRef].onCancel();
       },
       modifyTodo(){
-        this.todo.title = this.newTodo;
+        this.todo.title = this.title;
         this.todo.content = this.content;
-        this.todo.date = this.datepicker1;
+        this.todo.date = this.date;
         this.$emit('done', this.todo);
         this.$refs[this.popupRef].onCancel();
       }
