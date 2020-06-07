@@ -5,9 +5,10 @@
 
     <b-row id="todolist" class="w-100">
        <b-alert variant="warning"
+                class="w-100"
                 dismissible
                 fade
-                :show="alertDate.length > 0 && showDismissibleAlert && todoList.length > 0"
+                :show="pendingAlert.length > 0 && todoList.length > 0"
                 @dismissed="showDismissibleAlert = false"
        >
         마감기간이 지난 일정이 존재합니다.
@@ -17,11 +18,11 @@
           <b-row no-gutters>
             <span class="badge">전체 : {{todoList.length}}</span>
             <span class="badge">완료 : {{completed || 0}}</span>
-            <span class="badge">미완료 : {{pending || 0}}</span>
+            <span class="badge">미 완료 : {{pending || 0}}</span>
           </b-row>
           <b-row no-gutters class="py-2">
             <b-button aria-label="Modify" title="Modify" class="btn-picto" @click="openTodoPopup">
-              <span class="font-12">추가하기</span>
+              <span class="font-12">일정 추가하기</span>
             </b-button>
           </b-row>
         </b-row>
@@ -34,9 +35,12 @@
                    :key="todo.id"
                    :class="{ done: todo.completed, undone: !todo.completed }">
             <div class="todo-info">
-                <input class="toggle" type="checkbox" v-model="todo.completed">
-                <span class="label todo-title">{{ todo.title }}</span>
+              <input class="toggle" type="checkbox" v-model="todo.completed">
+              <b-badge variant="danger" v-if="todo.rank == '긴급'">{{todo.rank}}</b-badge>
+              <b-badge variant="info" v-if="todo.rank == '중요'">{{todo.rank}}</b-badge>
+              <span class="label todo-title">{{ todo.title }}</span>
             </div>
+
             <span class="todo-date">{{todo.date | dateFormat}}</span>
 
             <b-row class="actions">
@@ -79,10 +83,11 @@
       <todo-list-modal
               ref="todoPopup"
               :todo="selectedTodo"
+              :modalTitle="modalTitle"
               popup-ref="openTodoPopup"
               :mode="modalMode"
               @add="addTodo"
-              @done="doneEdit"
+              @modifyDone="doneEdit"
               @onConfirmAction="addTodo"
       />
 
@@ -117,10 +122,10 @@
         todoList: [],
         editedTodo: null,
         drag : true,
-        selectedTodo : {title:'', content: '' , date:''},
-        alertDate : false,
+        selectedTodo : {title: '', content: '', rank: null, date: ''},
         showDismissibleAlert : true,
         modalMode: null,
+        modalTitle : ''
       }
     },
     watch: {
@@ -138,6 +143,15 @@
       pending: function () {
         return _.filter(this.todoList, ['completed', false]).length;
       },
+      pendingAlert: function () {
+        return _.filter(this.todoList, function(t) {
+          if (t.date != '') {
+            if (moment(t.date).format('YYYY-MM-DD') < moment().format('YYYY-MM-DD') && !t.completed) {
+              return t.date;
+            }
+          }
+        });
+      },
     },
     filters: {
       dateFormat: function(value, sep = '-') {
@@ -146,16 +160,9 @@
       }
     },
     methods: {
-      getTodos() {
+      getTodoList() {
         if (localStorage.getItem('todoList')) {
           this.todoList = JSON.parse(localStorage.getItem('todoList'));
-          this.alertDate  = _.filter(this.todoList, function(t) {
-            if (t.date != '') {
-              if (moment(t.date).format('YYYY-MM-DD') < moment().format('YYYY-MM-DD') && !t.completed) {
-                return t.date;
-              }
-            }
-          });
         }
       },
       addTodo(param) {
@@ -164,6 +171,7 @@
           title: param.title,
           content: param.content,
           date: param.date,
+          rank: param.rank,
           completed: false
         });
       },
@@ -172,6 +180,7 @@
       },
       editTodo: function (todo) {
         this.modalMode = 'edit';
+        this.modalTitle = 'Todo 수정하기';
         this.selectedTodo = todo;
         this.editedTodo = todo;
         this.$refs.todoPopup.show();
@@ -180,21 +189,16 @@
         this.selectedTodo = todo;
         this.$refs.todoViewPopup.show();
       },
-      doneEdit: function (param) {
+      doneEdit: function () {
         if (!this.editedTodo) {
           return
         }
         this.editedTodo = null;
-        param.title = param.title.trim();
-        param.content = param.content.trim();
-        param.date = param.date;
-        if (!param.title) {
-          this.removeTodo(param)
-        }
       },
       openTodoPopup () {
         this.modalMode = 'add';
-        this.selectedTodo = {};
+        this.modalTitle = 'Todo 등록하기';
+        this.selectedTodo = {title: '', content: '', rank: null, date: ''};
         this.$refs.todoPopup.show();
       },
       removeCompleted: function () {
@@ -203,7 +207,7 @@
     },
 
     mounted: function() {
-      this.getTodos();
+      this.getTodoList();
     },
   }
 
@@ -214,12 +218,11 @@
   .navbar {
     display: block;
     position: relative;
-    top: 10px;
     font-size: 65px;
     font-weight: 100;
     text-align: center;
     color: rgba(59, 14, 18, 0.6);
-    height: 120px;
+    height: 100px;
   }
 
   @keyframes strikeitem {
@@ -235,13 +238,6 @@
     overflow: visible;
   }
 
-  #todolist .emptylist {
-    margin-top: 2.6rem;
-    text-align: center;
-    letter-spacing: 0.05em;
-    font-style: italic;
-    opacity: 0.8;
-  }
   #todolist ul {
     margin-top: 1rem;
     list-style: none;
