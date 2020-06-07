@@ -4,11 +4,11 @@
     <b-form-group>
       <b-row class="my-1">
         <b-col sm="3" class="pb-3">
-          <label for="title">제목 : </label>
+          <label for="title">* 제목 : </label>
         </b-col>
         <b-col sm="9" class="pb-3">
           <b-form-input id="title" v-model="title" placeholder="제목 입력" @keyup="validate"></b-form-input>
-          <p v-if="valid">제목을 입력해 주세요.</p>
+          <p v-if="valid" class="title-validate">제목을 입력해 주세요.</p>
         </b-col>
 
           <b-col sm="3" class="pb-3">
@@ -75,7 +75,7 @@
         dateYn : false,
         rank : null,
         rankOptions: [
-          { value: null, text: '우선순위 설정' },
+          { value: null, text: '우선순위 없음' },
           { value: '긴급', text: '긴급' },
           { value: '중요', text: '중요' },
         ],
@@ -94,6 +94,13 @@
           this.dateYn = true;
         }
       },
+        dateYn : function(){
+          if(!this.dateYn){
+              this.date = '';
+          }else{
+              this.date = this.todo.date;
+          }
+        }
     },
     methods: {
       show() {
@@ -137,7 +144,8 @@
 </script>
 
 <style>
-
-
+    .title-validate{
+        color : #ff122d;
+    }
 </style>
 
