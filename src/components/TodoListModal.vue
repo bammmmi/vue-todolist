@@ -4,19 +4,18 @@
     <b-form-group>
       <b-row class="my-1">
         <b-col sm="3" class="pb-3">
-          <label for="title">* 제목 : </label>
+          <label>* 제목 : </label>
         </b-col>
         <b-col sm="9" class="pb-3">
-          <b-form-input id="title" v-model="title" placeholder="제목 입력" @keyup="validate"></b-form-input>
+          <b-form-input v-model="title" placeholder="제목 입력" @keyup="validate"></b-form-input>
           <p v-if="valid" class="title-validate">제목을 입력해 주세요.</p>
         </b-col>
 
           <b-col sm="3" class="pb-3">
-              <label for="content">내용 : </label>
+              <label>내용 : </label>
           </b-col>
           <b-col sm="9" class="pb-3">
             <b-form-textarea
-                  id="content"
                   v-model="content"
                   placeholder="내용 입력"
                   rows="3"
@@ -25,17 +24,17 @@
           </b-col>
 
           <b-col sm="3" class="pb-3">
-              <label for="rank">우선순위 : </label>
+              <label>우선순위 : </label>
           </b-col>
           <b-col sm="9" class="pb-3">
-              <b-form-select id="rank" v-model="rank" :options="rankOptions"></b-form-select>
+              <b-form-select v-model="rank" :options="rankOptions"></b-form-select>
           </b-col>
 
           <b-col sm="3">
-              <label for="date"><b-form-checkbox v-model="dateYn">마감일 : </b-form-checkbox></label>
+              <label><b-form-checkbox v-model="dateYn">마감일 : </b-form-checkbox></label>
           </b-col>
           <b-col sm="9">
-              <b-form-datepicker id="date" placeholder="마감일 선택" local="ko" v-model="date" :aria-disabled="!dateYn"></b-form-datepicker>
+              <b-form-datepicker placeholder="마감일 선택" local="ko" v-model="date" :aria-disabled="!dateYn"></b-form-datepicker>
           </b-col>
       </b-row>
 
@@ -90,17 +89,15 @@
         this.content = this.todo.content;
         this.rank = this.todo.rank;
         this.date = this.todo.date;
-        if(this.date != '' ){
-          this.dateYn = true;
-        }
+        this.date != '' ? this.dateYn = true : this.dateYn = false;
       },
-        dateYn : function(){
-          if(!this.dateYn){
-              this.date = '';
-          }else{
-              this.date = this.todo.date;
-          }
+      dateYn: function(){
+        if(!this.dateYn){
+          this.date = '';
+        }else{
+          this.date = this.todo.date;
         }
+      }
     },
     methods: {
       show() {

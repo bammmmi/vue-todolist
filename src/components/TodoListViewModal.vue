@@ -2,7 +2,7 @@
   <b-modal :ref="popupRef" title="Todo 상세" hide-footer>
     <b-row class="my-1">
       <b-col sm="3" class="pb-3">
-        <label for="title">제목 : </label>
+        <label>제목 : </label>
       </b-col>
       <b-col sm="9" class="pb-3">
         <b-badge variant="danger" v-if="todo.rank == '긴급'">{{todo.rank}}</b-badge>
@@ -10,13 +10,13 @@
         {{ todo.title }}
       </b-col>
       <b-col sm="3" class="pb-3">
-        <label for="content">내용 : </label>
+        <label>내용 : </label>
       </b-col>
       <b-col sm="9" class="pb-3">
         {{ todo.content }}
       </b-col>
       <b-col sm="3" v-if="todo.date != ''">
-        <label for="date">마감일 :</label>
+        <label>마감일 :</label>
       </b-col>
       <b-col sm="9" v-if="todo.date != ''">
         {{ todo.date }}
