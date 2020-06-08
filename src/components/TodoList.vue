@@ -232,6 +232,8 @@
   }
 
   #todolist {
+    top:100px;
+    position: absolute;
     padding: 2rem 3rem 3rem;
     background: #fff;
     color: #32325d;
