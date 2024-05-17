@@ -39,10 +39,6 @@
       </b-row>
 
   </b-form-group>
-
-    <b-button class="mt-2" variant="outline-danger" @click="cancel">취소</b-button>
-    <b-button class="mt-2" variant="outline-warning" @click="addTodo" v-if="mode=='add'">추가</b-button>
-    <b-button class="mt-2" variant="outline-warning" @click="modifyTodo" v-else>수정</b-button>
   </b-modal>
 </template>
 
