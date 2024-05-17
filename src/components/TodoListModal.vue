@@ -23,12 +23,6 @@
             ></b-form-textarea>
           </b-col>
 
-          <b-col sm="3" class="pb-3">
-              <label>우선순위 : </label>
-          </b-col>
-          <b-col sm="9" class="pb-3">
-              <b-form-select v-model="rank" :options="rankOptions"></b-form-select>
-          </b-col>
 
           <b-col sm="3">
               <label><b-form-checkbox v-model="dateYn">마감일 : </b-form-checkbox></label>
