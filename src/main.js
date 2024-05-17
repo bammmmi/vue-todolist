@@ -12,8 +12,7 @@ import 'bootstrap-vue/dist/bootstrap-vue.css'
 
 Vue.config.productionTip = false;
 
-Vue.use(lodash);
-Vue.use(bootstrapVue);
+
 
 /* eslint-disable no-new */
 new Vue({
