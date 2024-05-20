@@ -12,12 +12,6 @@
         </b-col>
 
 
-          <b-col sm="3">
-              <label><b-form-checkbox v-model="dateYn">마감일 : </b-form-checkbox></label>
-          </b-col>
-          <b-col sm="9">
-              <b-form-datepicker placeholder="마감일 선택" local="ko" v-model="date" :aria-disabled="!dateYn"></b-form-datepicker>
-          </b-col>
       </b-row>
 
   </b-form-group>
