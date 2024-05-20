@@ -11,18 +11,6 @@
           <p v-if="valid" class="title-validate">제목을 입력해 주세요.</p>
         </b-col>
 
-          <b-col sm="3" class="pb-3">
-              <label>내용 : </label>
-          </b-col>
-          <b-col sm="9" class="pb-3">
-            <b-form-textarea
-                  v-model="content"
-                  placeholder="내용 입력"
-                  rows="3"
-                  max-rows="6"
-            ></b-form-textarea>
-          </b-col>
-
 
           <b-col sm="3">
               <label><b-form-checkbox v-model="dateYn">마감일 : </b-form-checkbox></label>
